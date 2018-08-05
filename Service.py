@@ -10,7 +10,8 @@ app.config['JSON_AS_ASCII'] = False
 def hello_world():
     return 'Hello World!'
 
-if __name__ == '__main__':
+@app.route('/get_realtime_concept_chg')
+def get_realtime_concept_chg():
     concept_codes_rel = {}
     code_item_rel = {}
     code_basics_rel = {}
@@ -20,8 +21,6 @@ if __name__ == '__main__':
         code = row[0]
         code_basics_rel.setdefault(code, row[1]) if code not in code_basics_rel.keys() else code_basics_rel[code].append(row[1])
 
-    print()
-    # app.run()
     codes = [item['code'] for item in dao.select("SELECT DISTINCT code from t_security_concept", ())]
     ##concept_codes_rel################################
     arr = dao.select("select code, concept from t_security_concept", ())
@@ -38,12 +37,37 @@ if __name__ == '__main__':
         for row in dfs.iterrows():
             code = row[1]['code']
             code_item_rel.setdefault(code, row[1])
+        print(codes[count:count+20])
         count = count + 20
 
     ##concept_chg_rel################################################
     for concept in concept_codes_rel.keys():
         codes = concept_codes_rel[concept]
-        item = code_item_rel[code]
+        pre = 0
+        now = 0
+        count = 0
+        for code in codes:
+            item = code_item_rel[code]
+            pre_close = float(item['pre_close'])
+            price = float(item['price'])
+            if price == 0.0:
+                price = pre_close
+            basic = code_basics_rel[code]
+            outstanding = float(basic['outstanding']*100000000)
+            pre_liquid_assets = outstanding * pre_close
+            liquid_assets = outstanding * price
+            pre = pre + pre_liquid_assets
+            now = now + liquid_assets
+            count = count + 1
+        if count < 4: continue
+        rate = round((now-pre)/pre*100, 2)
+        concept_chg_rel.setdefault(concept, rate)
+    list = sorted(concept_chg_rel.items(), key=lambda d: d[1], reverse=True)
+    return jsonify(list)
+
+if __name__ == '__main__':
+    app.run()
+
 
 
 
