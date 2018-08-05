@@ -11,7 +11,6 @@ def refreshSecurityConcepts():
         es_code = soup.select('#resultWrap .static_con_outer .tbody_table tr td.item div.em')
         index = 0
         codes = []
-        names = []
         while index < es_code.__len__():
             o_str = es_code[index].text.strip()
             if (o_str.isdigit()):

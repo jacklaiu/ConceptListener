@@ -2,9 +2,10 @@ from bs4 import BeautifulSoup
 from selenium import webdriver
 import os
 import time
+import execjs
 
 def getSoupsFromWencai(w):
-    url = 'https://www.iwencai.com/stockpick/search?typed=1&preParams=&ts=1&f=3&qs=pc_~soniu~stock~stock~history~query&selfsectsn=&querytype=stock&searchfilter=&tid=stockpick&w=' + w
+    url = 'http://www.iwencai.com/stockpick/search?typed=1&preParams=&ts=1&f=1&qs=result_rewrite&selfsectsn=&querytype=stock&searchfilter=&tid=stockpick&w=' + str(execjs.eval("encodeURIComponent('" + w + "')"))
     browser = None
     ret = []
     try:
