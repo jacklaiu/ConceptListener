@@ -2,6 +2,7 @@ import Crawler as cr
 import Dao as dao
 import Util as ut
 import tushare as ts
+import operator as op
 
 def refreshSecurityDaily(end=ut.getLastestOpenDate()):
     dao.update("truncate table t_security_daily", ())
@@ -31,15 +32,24 @@ def refreshSecurityDaily(end=ut.getLastestOpenDate()):
                 values = []
 
 def refreshSecurityDisposition():
+    dao.update("truncate table t_security_disposition", ())
     codes = [item['code'] for item in dao.select("select distinct code from t_security_daily", ())]
+    rows = dao.select("select code, date, pre_close, high, low, close, open from t_security_daily", ())
+    code_rows_rel = {}
+    for row in rows:
+        code = row['code']
+        if code not in code_rows_rel.keys():
+            code_rows_rel.setdefault(code, [row])
+        else:
+            code_rows_rel[code].append(row)
+
     values = []
     for code in codes:
-        code_high_zt_count_rel = {}
-        code_close_zt_count_rel = {}
-        items = dao.select("select date, pre_close, high, low, close, open from t_security_daily where code=%s", (code))
+        rows = code_rows_rel[code]
+        rows.sort(key=lambda x: x['date'], reverse=False)
         close_zt_count = 0
         high_zt_count = 0
-        for item in items:
+        for item in rows:
             date = item['date']
             print("ValuesLen: " + str(values.__len__()) + " Code: " + code + " Date: " + date)
             pre_close = float(item['pre_close'])
