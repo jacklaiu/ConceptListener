@@ -51,6 +51,17 @@ def select(sql, values):
     finally:
         cursor.close()
 
+def selectmany(sql, arr_values):
+    cursor = None
+    try:
+        with connection.cursor() as cursor:
+            # Read a single record
+            cursor.executemany(sql, arr_values)
+            result = cursor.fetchall()
+            return result
+
+    finally:
+        cursor.close()
 
 
 
